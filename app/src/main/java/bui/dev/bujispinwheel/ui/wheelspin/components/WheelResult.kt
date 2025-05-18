@@ -43,7 +43,6 @@ import androidx.compose.ui.text.style.TextDecoration
 
 @Composable
 fun WheelResult(onBack: () -> Unit, onRemoveResult: () -> Unit ,modifier: Modifier, result: String){
-    var boxWidth by remember { mutableStateOf(0) }
 
     Box(
         modifier = Modifier

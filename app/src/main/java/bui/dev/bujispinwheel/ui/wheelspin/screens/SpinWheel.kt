@@ -57,7 +57,6 @@ fun SpinWheel(
     var showResult by remember { mutableStateOf(false) }
     var result by remember { mutableStateOf("") }
     var pointerBounceTrigger by remember { mutableStateOf(false) }
-    var currentInput by remember { mutableStateOf("") }
     var optionsText by remember { mutableStateOf(items.joinToString("\n")) }
     var options by remember { mutableStateOf(items) }
     var showSaveDialog by remember { mutableStateOf(false) }

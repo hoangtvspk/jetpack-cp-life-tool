@@ -30,6 +30,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -45,6 +46,7 @@ fun HomeScreen(navController: NavController) {
         FeatureType(R.string.feature_todo_calendar, iconResId =   R.drawable.home_todo_icon, backgroundColor = Color(0xFFB08968), textColor = Color(0xFF3E2C23)),
         FeatureType(R.string.feature_fake_sound, iconResId =   R.drawable.home_fake_sound, backgroundColor = Color(0xFFD6A35D), textColor = Color(0xFF3E2500)),
     )
+    val configuration = LocalConfiguration.current
 
     Box(
         modifier = Modifier.fillMaxSize().background(Color(0xFFE2F1C5)),
@@ -82,13 +84,13 @@ fun HomeScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.weight(1f))
             LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                contentPadding = PaddingValues(8.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                columns = GridCells.Fixed(if (configuration.screenWidthDp > 400) 2 else 3),
+                contentPadding = PaddingValues(if (configuration.screenWidthDp > 400)  8.dp else 0.dp),
+                verticalArrangement = Arrangement.spacedBy(if (configuration.screenWidthDp > 400) 0.dp else 0.dp),
+                horizontalArrangement = Arrangement.spacedBy(if (configuration.screenWidthDp > 400) 16.dp  else 0.dp),
             ) {
                 items(features) { feature ->
-                    FeatureCard(feature)
+                    FeatureCard(feature, showTitle = configuration.screenWidthDp > 400)
                 }
             }
         }

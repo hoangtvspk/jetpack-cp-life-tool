@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -31,7 +32,7 @@ import androidx.compose.ui.unit.dp
 
 
 @Composable
-fun FeatureCard(feature: FeatureType) {
+fun FeatureCard(feature: FeatureType, showTitle: Boolean = true) {
     Box(
         modifier = Modifier.padding(all = 12.dp)
     ){
@@ -64,14 +65,17 @@ fun FeatureCard(feature: FeatureType) {
                         modifier = Modifier.size(40.dp)
                     )
                 }
-                Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = stringResource(id = feature.nameRes),
-                    color = feature.textColor,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    textAlign = TextAlign.Center
-                )
+                if (showTitle){
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = stringResource(id = feature.nameRes),
+                        color = feature.textColor,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        textAlign = TextAlign.Center
+                    )
+                }
+
             }
         }
     }

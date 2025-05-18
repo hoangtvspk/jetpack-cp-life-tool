@@ -6,6 +6,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -21,6 +22,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
@@ -51,6 +53,7 @@ fun WheelCanvas(
 ) {
     val context = LocalContext.current
     val customTypeface = ResourcesCompat.getFont(context, R.font.be_vietnam_pro_semibold)
+    val configuration = LocalConfiguration.current
 
     Canvas(modifier = modifier.fillMaxSize()) {
         val center = Offset(size.width / 2, size.height / 2)
@@ -80,6 +83,7 @@ fun WheelCanvas(
                 topLeft = Offset(center.x - radius, center.y - radius)
             )
         }
+
 
         // Draw the stroke
         drawCircle(
@@ -143,37 +147,47 @@ fun WheelCanvas(
             }
         }
 
-        // Draw pointer at the top
-        val pointerHeight = 32f
-        val pointerWidth = 32f
-        drawPolygon(
-            color = pointerColor,
-            points = listOf(
-                Offset(center.x, center.y - radius * 0.18f - pointerHeight*4/5),
-                Offset(center.x - pointerWidth / 2, center.y - radius * 0.18f  + pointerHeight/5 ),
-                Offset(center.x + pointerWidth / 2, center.y - radius * 0.18f  + pointerHeight/5 ),
-            ),
-        )
+        if(options.isNotEmpty()){
+            // Draw pointer at the top
+            val pointerHeight = 32f
+            val pointerWidth = 32f
+            drawPolygon(
+                color = pointerColor,
+                points = listOf(
+                    Offset(center.x, center.y - radius * 0.18f - pointerHeight*4/5),
+                    Offset(center.x - pointerWidth / 2, center.y - radius * 0.18f  + pointerHeight/5 ),
+                    Offset(center.x + pointerWidth / 2, center.y - radius * 0.18f  + pointerHeight/5 ),
+                ),
+            )
 
-        // Draw central hub
-        drawCircle(
-            color = hubColor,
-            radius = radius * 0.18f,
-            center = center
-        )
-        drawCircle(
-            color = hubStrokeColor,
-            radius = radius * 0.18f,
-            center = center,
-            style = Stroke(width = 6f)
-        )
+            // Draw central hub
+            drawCircle(
+                color = hubColor,
+                radius = radius * 0.18f,
+                center = center
+            )
+            drawCircle(
+                color = hubStrokeColor,
+                radius = radius * 0.18f,
+                center = center,
+                style = Stroke(width = 6f)
+            )
+        }
 
     }
-    Image(
-        painter = painterResource(id = R.drawable.wheel_panda_point),
-        contentDescription = "Background",
-        modifier = Modifier.width(30.dp)
-    )
+    if(options.isNotEmpty()){
+        Image(
+            painter = painterResource(id = R.drawable.wheel_panda_point),
+            contentDescription = "Background",
+            modifier = Modifier.width(if(configuration.screenWidthDp > 400) 30.dp else 22.dp)
+        )
+    } else {
+        Image(
+            painter = painterResource(id = R.drawable.wheel_panda_guiding),
+            contentDescription = "Background",
+            modifier = Modifier.fillMaxWidth(0.6f)
+        )
+    }
 }
 
 private fun DrawScope.drawPolygon(color: Color, points: List<Offset>) {
