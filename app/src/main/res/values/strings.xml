@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Buji Spin Wheel</string>
+    <string name="feature_spin_wheel">Spin Wheel</string>
+    <string name="feature_scan_qr">Scan QR code</string>
+    <string name="feature_image_to_text">Scan Text</string>
+    <string name="feature_countdown">Countdown</string>
+    <string name="feature_todo_calendar">Daily Plan</string>
+    <string name="feature_fake_sound">Fake sound effects</string>
+    <string name="home_title">Buji Handy</string>
+</resources>
