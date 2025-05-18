@@ -92,17 +92,6 @@ fun SpinWheel(
         }
     )
 
-    val pointerRotation by animateFloatAsState(
-        targetValue = if (showResult && pointerBounceTrigger) 20f else 0f,
-        animationSpec = tween(durationMillis = 350),
-        label = "pointerBounce",
-        finishedListener = {
-            if (showResult && pointerBounceTrigger) {
-                pointerBounceTrigger = false
-            }
-        }
-    )
-
     val sliceColors = listOf(
         Color(0xFFCCE490),
         Color(0xFFFFD59E),
@@ -157,11 +146,6 @@ fun SpinWheel(
                     }
                 }
                 .background(
-//                    Brush.verticalGradient(
-//                        colors = listOf(Color.Transparent, Color(0xFFFFF3E0)), // 0x80 = alpha 50%
-//                        startY = 0f,
-//                        endY = Float.POSITIVE_INFINITY
-//                    )
                     Color(0xFFBFCB8E)
                 )
                 .padding(top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding())

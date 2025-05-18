@@ -60,6 +60,7 @@ fun WheelCanvas(
             radius = radius,
             center = center
         )
+
         // Draw slices with alternating colors
         options.forEachIndexed { index, item ->
             val startAngle = index * sliceAngle + rotation + wheelRotationOffset
@@ -74,26 +75,7 @@ fun WheelCanvas(
             )
         }
 
-//        // Draw divider lines between sections
-//        options.forEachIndexed { index, _ ->
-//            val angle = index * sliceAngle + rotation + wheelRotationOffset
-//            val angleInRadians = Math.toRadians(angle.toDouble())
-//            val startX = center.x + (radius * 0.2f * cos(angleInRadians)).toFloat()
-//            val startY = center.y + (radius * 0.2f * sin(angleInRadians)).toFloat()
-//            val endX = center.x + (radius * cos(angleInRadians)).toFloat()
-//            val endY = center.y + (radius * sin(angleInRadians)).toFloat()
-//            if(options.size > 1)
-//            {
-//                drawLine(
-//                    color = Color(0xFFFFD59E),
-//                    start = Offset(startX, startY),
-//                    end = Offset(endX, endY),
-//                    strokeWidth = 3f
-//                )
-//            }
-//        }
-
-        // Draw border
+        // Draw the stroke
         drawCircle(
             color = borderColor,
             radius = radius,
@@ -101,69 +83,52 @@ fun WheelCanvas(
             style = Stroke(width = 8f)
         )
 
-
-
-
-
-        // Draw text as a whole word, upright and centered in each slice
+        // Vẽ text từng slice
         options.forEachIndexed { index, item ->
             val startAngle = index * sliceAngle + rotation + wheelRotationOffset
-            var fontSize = 22.sp
-            var lineHeightPx = fontSize.toPx()
             val middleAngle = startAngle + sliceAngle / 2
 
-
-
-            val chars = item.toCharArray()
-
-            val fixedOffsetFromEdge = 40.dp.toPx()
-
-
-            val textBlockHeight = lineHeightPx * chars.size
-
-            val maxAllowHeight = radius * 0.9f
-            val angleRad = (middleAngle) * PI / 180.0
-
-            if (textBlockHeight > maxAllowHeight) {
-                val scale = maxAllowHeight / textBlockHeight
-                fontSize = (fontSize.value * scale).sp
-                lineHeightPx = fontSize.toPx()
-            }
-
+            var fontSize = 22.sp
             val paint = Paint().apply {
                 color = "#5D4037".toColorInt()
                 textSize = fontSize.toPx()
                 textAlign = Paint.Align.CENTER
                 isFakeBoldText = true
+                isAntiAlias = true
             }
 
-            // Tính tổng độ cao dựa vào width của từng chữ
-            val charWidths = chars.map { paint.measureText(it.toString()) }
-            val totalHeight = charWidths.sum()
+            val chars = item.toCharArray()
+            val charHeights = chars.map { paint.measureText(it.toString()) }
+            val totalTextHeight = charHeights.sum()
 
-            // Nếu tổng vượt quá maxAllowHeight thì scale lại
-            if (totalHeight > maxAllowHeight) {
-                val scale = maxAllowHeight / totalHeight
+            // Giới hạn vùng hiển thị chữ: cách mép ngoài 40dp
+            val maxTextHeight = radius * 0.7f
+            if (totalTextHeight > maxTextHeight) {
+                val scale = maxTextHeight / totalTextHeight
                 paint.textSize *= scale
             }
 
-            // Recalculate charWidths after scaling
-            val scaledCharWidths = chars.map { paint.measureText(it.toString()) }
-            val adjustedBaseRadius = radius - fixedOffsetFromEdge
-            var cumulativeOffset = 0f
+            // Cập nhật lại chiều cao sau khi scale
+            val scaledCharHeights = chars.map { paint.measureText(it.toString()) }
+            val totalScaledHeight = scaledCharHeights.sum()
+            val targetRadius = radius - 40.dp.toPx()  // 👈 Khoảng cách chữ cuối cùng tới viền
 
-            chars.forEachIndexed { index, c ->
-                val offsetY = -totalHeight / 2 + cumulativeOffset + scaledCharWidths[index] /2
-                cumulativeOffset += scaledCharWidths[index]
+            var offsetYAcc = -totalScaledHeight / 2f
+            val angleRad = Math.toRadians(middleAngle.toDouble())
 
-                val distanceFromCenter = adjustedBaseRadius + offsetY
+            chars.forEachIndexed { i, c ->
+                val charHeight = scaledCharHeights[i]
+                val yOffsetInText = offsetYAcc + charHeight / 2f
+                offsetYAcc += charHeight
 
-                val x = center.x + distanceFromCenter * cos(angleRad)
-                val y = center.y + distanceFromCenter * sin(angleRad)
+                val distanceFromCenter = targetRadius - (totalScaledHeight / 2f) + yOffsetInText + 30.dp.toPx()
+
+                val x = center.x + distanceFromCenter * cos(angleRad).toFloat()
+                val y = center.y + distanceFromCenter * sin(angleRad).toFloat()
 
                 drawIntoCanvas { canvas ->
                     canvas.save()
-                    canvas.translate(x.toFloat(), y.toFloat())
+                    canvas.translate(x, y)
                     canvas.rotate(middleAngle.toFloat())
                     canvas.nativeCanvas.drawText(c.toString(), 0f, 0f, paint)
                     canvas.restore()
