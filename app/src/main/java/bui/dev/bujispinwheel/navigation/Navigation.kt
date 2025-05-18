@@ -7,28 +7,19 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import bui.dev.bujispinwheel.ui.home.screens.HomeScreen
-import bui.dev.bujispinwheel.ui.wheelspin.components.SpinWheel
-import bui.dev.bujispinwheel.ui.wheelspin.screens.EditWheelListScreen
+import bui.dev.bujispinwheel.ui.wheelspin.screens.SpinWheel
 
 @Composable
 fun Navigation() {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = "home") {
+    NavHost(navController = navController, startDestination = "spin_wheel") {
         composable("home") {
             HomeScreen(navController)
         }
         composable("spin_wheel") {
             SpinWheel(navController = navController)
         }
-        composable(
-            route = "edit_wheel_list/{listId}",
-            arguments = listOf(navArgument("listId") { type = NavType.StringType })
-        ) { backStackEntry ->
-            EditWheelListScreen(
-                listId = backStackEntry.arguments?.getString("listId") ?: "",
-                onNavigateBack = { navController.popBackStack() }
-            )
-        }
+
     }
 } 

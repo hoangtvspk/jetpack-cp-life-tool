@@ -130,7 +130,7 @@ fun WheelCanvas(
                     canvas.save()
                     canvas.translate(x, y)
                     canvas.rotate(middleAngle.toFloat())
-                    canvas.nativeCanvas.drawText(c.toString(), 0f, 0f, paint)
+                    canvas.nativeCanvas.drawText(c.toString(), 0f, charHeight / 2f, paint)
                     canvas.restore()
                 }
             }

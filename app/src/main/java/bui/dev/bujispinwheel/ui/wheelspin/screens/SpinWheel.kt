@@ -1,9 +1,7 @@
-package bui.dev.bujispinwheel.ui.wheelspin.components
+package bui.dev.bujispinwheel.ui.wheelspin.screens
 
-import android.content.res.Resources
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -13,8 +11,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
@@ -27,29 +23,21 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import bui.dev.bujispinwheel.R
 import bui.dev.bujispinwheel.data.WheelList
 import bui.dev.bujispinwheel.data.WheelListRepository
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.UUID
-import kotlin.math.PI
-import kotlin.math.cos
-import kotlin.math.sin
 import kotlin.random.Random
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
-import bui.dev.bujispinwheel.navigation.Navigation
+import bui.dev.bujispinwheel.ui.wheelspin.components.SavedListsDrawer
+import bui.dev.bujispinwheel.ui.wheelspin.components.WheelCanvas
+import bui.dev.bujispinwheel.ui.wheelspin.components.WheelResult
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -150,11 +138,16 @@ fun SpinWheel(
                 )
                 .padding(top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding())
         ) {
-            Row (
+            Row(
                 modifier = Modifier.fillMaxWidth().background(Color.Transparent),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = { navController.popBackStack(route = "home", inclusive = false) }) {
+                IconButton(onClick = {
+                    navController.popBackStack(
+                        route = "home",
+                        inclusive = false
+                    )
+                }) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back",
@@ -162,9 +155,16 @@ fun SpinWheel(
                         modifier = Modifier.size(30.dp)
                     )
                 }
-                Text("Spin Wheel", fontSize = 24.sp, color = titleColor,  fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, modifier = Modifier.padding(16.dp))
+                Text(
+                    "Spin Wheel",
+                    fontSize = 24.sp,
+                    color = titleColor,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(16.dp)
+                )
                 Spacer(modifier = Modifier.weight(1f))
-                Box{
+                Box {
                     if (savedLists.value.isNotEmpty()) {
                         IconButton(
                             onClick = { scope.launch { drawerState.open() } },
@@ -173,7 +173,7 @@ fun SpinWheel(
                             Icon(
                                 painter = painterResource(id = R.drawable.history),
                                 contentDescription = "Danh sách đã lưu",
-                                tint =  titleColor,
+                                tint = titleColor,
                                 modifier = Modifier.size(30.dp)
                             )
                         }
@@ -183,12 +183,12 @@ fun SpinWheel(
 
             Box(
                 modifier = Modifier.fillMaxWidth().align(Alignment.BottomEnd).fillMaxHeight()
-            ){
+            ) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .align(Alignment.BottomEnd)
-                        .aspectRatio(584/607f)
+                        .aspectRatio(584 / 607f)
 
                 ) {
                     Column {
@@ -196,13 +196,12 @@ fun SpinWheel(
                         Image(
                             painter = painterResource(id = R.drawable.wheel_input_background),
                             contentDescription = "Background",
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.FillBounds
+                            modifier = Modifier.fillMaxSize()
                         )
                     }
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth(fraction = 400/584f)
+                            .fillMaxWidth(fraction = 400 / 584f)
                             .align(Alignment.BottomCenter)
                     ) {
                         Column(
@@ -211,7 +210,6 @@ fun SpinWheel(
                             verticalArrangement = Arrangement.spacedBy(0.dp)
                         ) {
 
-                            
 
                             OutlinedTextField(
                                 value = optionsText,
@@ -224,17 +222,21 @@ fun SpinWheel(
                                 label = { Text("Danh sách lựa chọn") },
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .aspectRatio(400/145f),
+                                    .aspectRatio(400 / 145f),
                                 shape = RoundedCornerShape(16.dp),
                                 singleLine = false,
                                 maxLines = 10,
                                 colors = OutlinedTextFieldDefaults.colors(
                                     unfocusedContainerColor = Color.Transparent,
-                                    focusedContainerColor = Color.Transparent)
+                                    focusedContainerColor = Color.Transparent
+                                )
                             )
 
-                            Box(modifier = Modifier.fillMaxWidth().aspectRatio(400/130f).padding(end = 4.dp, top = 4.dp)){
-                                Row(modifier = Modifier.align(Alignment.TopEnd)){
+                            Box(
+                                modifier = Modifier.fillMaxWidth().aspectRatio(400 / 130f)
+                                    .padding(end = 4.dp, top = 4.dp)
+                            ) {
+                                Row(modifier = Modifier.align(Alignment.TopEnd)) {
                                     Icon(
                                         imageVector = Icons.Filled.Create,
                                         contentDescription = "Back",
@@ -244,31 +246,32 @@ fun SpinWheel(
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))
                                     Text(
-                                    if (currentListId != null) "Cập nhật" else "Lưu",
-                                    fontSize = 12.sp,
-                                    color = Color(0xFF4A90E2),
-                                    textDecoration = TextDecoration.Underline,
-                                    style = TextStyle(
+                                        if (currentListId != null) "Cập nhật" else "Lưu",
+                                        fontSize = 12.sp,
+                                        color = Color(0xFF4A90E2),
+                                        textDecoration = TextDecoration.Underline,
+                                        style = TextStyle(
 
-                                        platformStyle = PlatformTextStyle(includeFontPadding = false)
-                                    ),
-                                    modifier = Modifier
-                                        .clickable { showSaveDialog = true }
+                                            platformStyle = PlatformTextStyle(includeFontPadding = false)
+                                        ),
+                                        modifier = Modifier
+                                            .clickable { showSaveDialog = true }
 
-                                )
+                                    )
                                 }
                             }
 
 
                         }
-                    }}
+                    }
+                }
                 Column(
                     modifier = modifier.fillMaxSize().background(Color.Transparent),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
                     Spacer(modifier = Modifier.height(80.dp))
-                    
+
                     Box(
                         modifier = Modifier
                             .width((if (configuration.screenWidthDp > 370) 380.0 else configuration.screenWidthDp * 0.7).dp)
@@ -302,7 +305,12 @@ fun SpinWheel(
                             .size(width = 200.dp, height = 56.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF49200))
                     ) {
-                        Text("Bắt đầu", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                        Text(
+                            "Bắt đầu",
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
                     }
 
                     Spacer(modifier = Modifier.weight(1f))
@@ -371,192 +379,28 @@ fun SpinWheel(
 
     if (showResult) {
         pointerBounceTrigger = true
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.8f)) // Nền mờ
-                .clickable(onClick = { showResult = false })
-        ) {
+        WheelResult(
+            modifier = modifier,
+            result = result,
+            onBack = {
+                showResult = false
+            },
+            onRemoveResult = {
+                if (options.contains(result)) {
+                    // Create a new list without the item
+                    val updatedOptions = options.toMutableList().apply {
+                        remove(result)
+                    }
+                    options = updatedOptions // Update the state
 
+                    // Update the optionsText as well
+                    optionsText = updatedOptions.joinToString("\n")
 
-            Image(
-                painter = painterResource(id = R.drawable.wheel_panda_result),
-                contentDescription = "Background",
-                modifier = Modifier.fillMaxSize(),
-            )
-            Column(
-                modifier = modifier.fillMaxSize().background(Color.Transparent),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ){
-
-                Text(
-                    text = "🎉 $result 🎉",
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
-                    fontSize = 32.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black
-                )
-                Box(modifier = Modifier.fillMaxHeight(0.45f));
-            }
-        }
-    }
-
-}
-//
-//@Composable
-//fun ConfettiEffect() {
-//    val particles = remember { mutableStateListOf<ConfettiParticle>() }
-//
-//    // Generate new particles every frame
-//    LaunchedEffect(Unit) {
-//        while (true) {
-//            repeat(5) {
-//                particles.add(ConfettiParticle.random())
-//            }
-//            delay(1) // ~60fps
-//        }
-//    }
-//
-//    // Update and draw particles
-//    Canvas(modifier = Modifier.fillMaxSize()) {
-//        val iterator = particles.iterator()
-//        while (iterator.hasNext()) {
-//            val p = iterator.next()
-//            p.update()
-//            if (p.isOutOfBounds(size.height)) {
-//                iterator.remove()
-//            } else {
-//                drawCircle(
-//                    color = p.color,
-//                    radius = p.size,
-//                    center = Offset(p.x, p.y)
-//                )
-//            }
-//        }
-//    }
-//}
-//
-//class ConfettiParticle(
-//    var x: Float,
-//    var y: Float,
-//    var dy: Float,
-//    val size: Float,
-//    val color: Color
-//) {
-//    fun update() {
-//        y += dy
-//    }
-//
-//    fun isOutOfBounds(screenHeight: Float): Boolean {
-//        return y > screenHeight + size
-//    }
-//
-//    companion object {
-//        fun random(): ConfettiParticle {
-//            val random = Random(System.currentTimeMillis())
-//            return ConfettiParticle(
-//                x = random.nextFloat() * Resources.getSystem().displayMetrics.widthPixels,
-//                y = 0f,
-//                dy = 4f + random.nextFloat() * 6f,
-//                size = 6f + random.nextFloat() * 6f,
-//                color = Color(
-//                    red = random.nextFloat(),
-//                    green = random.nextFloat(),
-//                    blue = random.nextFloat(),
-//                    alpha = 1f
-//                )
-//            )
-//        }
-//    }
-//}
-
-@Composable
-fun FireworkBurstEffectAuto(
-    modifier: Modifier = Modifier,
-    particleCount: Int = 24,
-    intervalMillis: Long = 24L,
-    content: @Composable BoxScope.() -> Unit
-) {
-    val particles = remember { mutableStateListOf<Particle>() }
-    var origin by remember { mutableStateOf(Offset.Zero) }
-
-    BoxWithConstraints(
-        modifier = modifier
-            .onGloballyPositioned { layoutCoordinates ->
-                val bounds = layoutCoordinates.boundsInWindow()
-                origin = Offset(
-                    x = bounds.left + bounds.width / 2f,
-                    y = bounds.top + bounds.height / 2f
-                )
-            }
-    ) {
-        // Bắn pháo định kỳ
-        LaunchedEffect(Unit) {
-            while (true) {
-                repeat(particleCount) {
-                    particles.add(Particle.from(origin))
-                }
-                delay(intervalMillis)
-            }
-        }
-
-        // Vẽ pháo
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val iterator = particles.iterator()
-            while (iterator.hasNext()) {
-                val p = iterator.next()
-                p.update()
-                if (p.alpha <= 0f) {
-                    iterator.remove()
-                } else {
-                    drawCircle(
-                        color = p.color.copy(alpha = p.alpha),
-                        radius = p.size,
-                        center = Offset(p.x, p.y)
-                    )
+                    // Optionally, you might want to close the result dialog after removal
+                    showResult = false
                 }
             }
-        }
-
-        content()
-    }
-}
-
-class Particle(
-    var x: Float,
-    var y: Float,
-    private var vx: Float,
-    private var vy: Float,
-    val size: Float,
-    val color: Color,
-    var alpha: Float
-) {
-    fun update() {
-        x += vx
-        y += vy
-        alpha -= 0.03f // mờ dần
+        )
     }
 
-    companion object {
-        fun from(origin: Offset): Particle {
-            val angle = Random.nextFloat() * 2 * PI
-            val speed = 4f + Random.nextFloat() * 2f
-            val vx = cos(angle).toFloat() * speed
-            val vy = sin(angle).toFloat() * speed
-            return Particle(
-                x = origin.x,
-                y = origin.y,
-                vx = vx,
-                vy = vy,
-                size = 6f,
-                color = Color(
-                    red = Random.nextFloat(),
-                    green = Random.nextFloat(),
-                    blue = Random.nextFloat()
-                ),
-                alpha = 1f
-            )
-        }
-    }
 }
