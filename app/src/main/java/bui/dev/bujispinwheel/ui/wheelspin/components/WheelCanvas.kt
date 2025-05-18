@@ -21,38 +21,44 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.res.ResourcesCompat
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.PI
 import androidx.core.graphics.toColorInt
 import bui.dev.bujispinwheel.R
+import bui.dev.bujispinwheel.ui.wheelspin.screens.SliceStyle
+
 
 @Composable
 fun WheelCanvas(
     modifier: Modifier = Modifier,
     options: List<String>,
     rotation: Float,
-    sliceColors: List<Color>,
+    sliceColors: List<SliceStyle>,
     borderColor: Color,
     pointerColor: Color,
     hubColor: Color,
     hubStrokeColor: Color,
     fillColor: Color
 ) {
-    val textMeasurer = rememberTextMeasurer()
-
+    val context = LocalContext.current
+    val customTypeface = ResourcesCompat.getFont(context, R.font.be_vietnam_pro_semibold)
 
     Canvas(modifier = modifier.fillMaxSize()) {
         val center = Offset(size.width / 2, size.height / 2)
         val radius = size.width / 2 * 0.95f
         val sliceAngle = 360f / options.size
         val wheelRotationOffset = -90f // Item 1 at top
+
+
 
         // Draw the fill
         drawCircle(
@@ -66,7 +72,7 @@ fun WheelCanvas(
             val startAngle = index * sliceAngle + rotation + wheelRotationOffset
             val sweepAngle = sliceAngle
             drawArc(
-                color = if(index == 0) fillColor else sliceColors[index % sliceColors.size],
+                color = if(index == 0) fillColor else sliceColors[index % sliceColors.size].backgroundColor,
                 startAngle = startAngle,
                 sweepAngle = sweepAngle,
                 useCenter = true,
@@ -90,11 +96,12 @@ fun WheelCanvas(
 
             var fontSize = 22.sp
             val paint = Paint().apply {
-                color = "#5D4037".toColorInt()
+                color = (if(index == 0) ("#5A3A00").toColorInt() else sliceColors[index % sliceColors.size].textColor.toColorInt())
                 textSize = fontSize.toPx()
+
                 textAlign = Paint.Align.CENTER
-                isFakeBoldText = true
                 isAntiAlias = true
+                typeface = customTypeface
             }
 
             val chars = item.toCharArray()
@@ -130,7 +137,7 @@ fun WheelCanvas(
                     canvas.save()
                     canvas.translate(x, y)
                     canvas.rotate(middleAngle.toFloat())
-                    canvas.nativeCanvas.drawText(c.toString(), 0f, charHeight / 2f, paint)
+                    canvas.nativeCanvas.drawText(c.toString(), 0f, -paint.fontMetrics.ascent / 2f, paint)
                     canvas.restore()
                 }
             }

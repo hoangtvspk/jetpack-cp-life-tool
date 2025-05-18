@@ -39,6 +39,12 @@ import bui.dev.bujispinwheel.ui.wheelspin.components.SavedListsDrawer
 import bui.dev.bujispinwheel.ui.wheelspin.components.WheelCanvas
 import bui.dev.bujispinwheel.ui.wheelspin.components.WheelResult
 
+
+data class SliceStyle(
+    val backgroundColor: Color,
+    val textColor: String
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SpinWheel(
@@ -80,11 +86,24 @@ fun SpinWheel(
         }
     )
 
+
     val sliceColors = listOf(
-        Color(0xFFCCE490),
-        Color(0xFFFFD59E),
-        Color(0xFFA9C18F),
-        Color(0xFFFAB857),
+        SliceStyle(
+            backgroundColor = Color(0xFFCCE490), // Xanh lá non
+            textColor = "#3D3D3D"         // Xám đậm
+        ),
+        SliceStyle(
+            backgroundColor = Color(0xFFFFD59E), // Vàng pastel
+            textColor = "#5A3A00"       // Nâu đậm
+        ),
+        SliceStyle(
+            backgroundColor = Color(0xFFA9C18F), // Xanh ô liu nhạt
+            textColor = "#2F2F2F"       // Xám đậm
+        ),
+        SliceStyle(
+            backgroundColor = Color(0xFFFAB857), // Cam sáng
+            textColor = "#4B2800"        // Nâu đậm
+        )
     )
     val borderColor = Color(0xFFFFB74D)
     val pointerColor = Color(0xFFD32F2F)

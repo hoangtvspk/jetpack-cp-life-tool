@@ -13,7 +13,7 @@ import bui.dev.bujispinwheel.ui.wheelspin.screens.SpinWheel
 fun Navigation() {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = "spin_wheel") {
+    NavHost(navController = navController, startDestination = "home") {
         composable("home") {
             HomeScreen(navController)
         }
