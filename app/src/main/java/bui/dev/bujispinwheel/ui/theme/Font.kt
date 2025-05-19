@@ -14,16 +14,16 @@ val BeVietnamPro = FontFamily(
     Font(R.font.be_vietnam_pro_extralight, FontWeight.ExtraLight),
     Font(R.font.be_vietnam_pro_extralight_italic, FontWeight.ExtraLight, style = FontStyle.Italic),
 
-    Font(R.font.be_vietnam_pro_light, FontWeight.Normal),
-    Font(R.font.be_vietnam_pro_light_italic, FontWeight.Normal, style = FontStyle.Italic),
+    Font(R.font.be_vietnam_pro_light, FontWeight.Light),
+    Font(R.font.be_vietnam_pro_light_italic, FontWeight.Light, style = FontStyle.Italic),
 
-    Font(R.font.be_vietnam_pro_medium, FontWeight.Bold),
-    Font(R.font.be_vietnam_pro_medium_italic, FontWeight.Bold, style = FontStyle.Italic),
+    Font(R.font.be_vietnam_pro_medium, FontWeight.Medium),
+    Font(R.font.be_vietnam_pro_medium_italic, FontWeight.Medium, style = FontStyle.Italic),
 
-    Font(R.font.be_vietnam_pro_thin, FontWeight.Normal),
-    Font(R.font.be_vietnam_pro_thin_italic, FontWeight.Normal, style = FontStyle.Italic),
+    Font(R.font.be_vietnam_pro_thin, FontWeight.Thin),
+    Font(R.font.be_vietnam_pro_thin_italic, FontWeight.Thin, style = FontStyle.Italic),
 
-    Font(R.font.be_vietnam_pro_semibold, FontWeight.Bold),
-    Font(R.font.be_vietnam_pro_semibold_italic, FontWeight.Bold, style = FontStyle.Italic),
+    Font(R.font.be_vietnam_pro_semibold, FontWeight.SemiBold),
+    Font(R.font.be_vietnam_pro_semibold_italic, FontWeight.SemiBold, style = FontStyle.Italic),
 
 )

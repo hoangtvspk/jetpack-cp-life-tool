@@ -52,7 +52,7 @@ fun WheelCanvas(
     fillColor: Color
 ) {
     val context = LocalContext.current
-    val customTypeface = ResourcesCompat.getFont(context, R.font.be_vietnam_pro_semibold)
+    val customTypeface = ResourcesCompat.getFont(context, R.font.be_vietnam_pro)
     val configuration = LocalConfiguration.current
 
     Canvas(modifier = modifier.fillMaxSize()) {

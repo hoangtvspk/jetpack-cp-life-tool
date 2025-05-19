@@ -7,6 +7,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import bui.dev.bujispinwheel.ui.home.screens.HomeScreen
+import bui.dev.bujispinwheel.ui.qr_scanner.screens.QRScannerScreen
 import bui.dev.bujispinwheel.ui.wheelspin.screens.SpinWheel
 
 @Composable
@@ -19,6 +20,9 @@ fun Navigation() {
         }
         composable("spin_wheel") {
             SpinWheel(navController = navController)
+        }
+        composable("qr_scanner"){
+            QRScannerScreen {  }
         }
 
     }

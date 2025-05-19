@@ -32,25 +32,63 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(navController: NavController) {
     val features = listOf(
-        FeatureType(R.string.feature_spin_wheel, iconResId = R.drawable.home_wheel_icon, backgroundColor = Color(0xFFA3D977), textColor = Color(0xFF1B4300), onClick = {
-            navController.navigate("spin_wheel");
-        }),
-        FeatureType(R.string.feature_scan_qr, iconResId =   R.drawable.home_qr_icon,  backgroundColor = Color(0xFFFFE082), textColor = Color(0xFF664D00)),
-        FeatureType(R.string.feature_image_to_text,iconResId =   R.drawable.home_scan_text_icon,backgroundColor = Color(0xFF907161), textColor = Color(0xFFFFFFFF)),
-        FeatureType(R.string.feature_countdown, iconResId =   R.drawable.home_countdown_icon, backgroundColor = Color(0xFFF4A261), textColor = Color(0xFF5B2B00)),
-        FeatureType(R.string.feature_todo_calendar, iconResId =   R.drawable.home_todo_icon, backgroundColor = Color(0xFFB08968), textColor = Color(0xFF3E2C23)),
-        FeatureType(R.string.feature_fake_sound, iconResId =   R.drawable.home_fake_sound, backgroundColor = Color(0xFFD6A35D), textColor = Color(0xFF3E2500)),
+        FeatureType(
+            R.string.feature_spin_wheel,
+            iconResId = R.drawable.home_wheel_icon,
+            backgroundColor = Color(0xFFA3D977),
+            textColor = Color(0xFF1B4300),
+            onClick = {
+                navController.navigate("spin_wheel");
+            }
+        ),
+        FeatureType(
+            R.string.feature_scan_qr,
+            iconResId =   R.drawable.home_qr_icon,
+            backgroundColor = Color(0xFFFFE082),
+            textColor = Color(0xFF664D00),
+            onClick = {
+                navController.navigate("qr_scanner");
+            }
+        ),
+        FeatureType(
+            R.string.feature_image_to_text,
+            iconResId =   R.drawable.home_scan_text_icon,
+            backgroundColor = Color(0xFF907161),
+            textColor = Color(0xFFFFFFFF)
+        ),
+        FeatureType(R.string.feature_countdown,
+            iconResId =   R.drawable.home_countdown_icon,
+            backgroundColor = Color(0xFFF4A261),
+            textColor = Color(0xFF5B2B00)
+        ),
+        FeatureType(
+            R.string.feature_todo_calendar,
+            iconResId =   R.drawable.home_todo_icon,
+            backgroundColor = Color(0xFFB08968),
+            textColor = Color(0xFF3E2C23)
+        ),
+        FeatureType(
+            R.string.feature_fake_sound,
+            iconResId =   R.drawable.home_fake_sound,
+            backgroundColor = Color(0xFFD6A35D),
+            textColor = Color(0xFF3E2500)
+        ),
     )
     val configuration = LocalConfiguration.current
 
     Box(
-        modifier = Modifier.fillMaxSize().background(Color(0xFFE2F1C5)),
-        
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFE2F1C5))
+
     ) {
         // Background Image
         Box(modifier = Modifier.padding(all = 16.dp)){
@@ -93,6 +131,7 @@ fun HomeScreen(navController: NavController) {
                     FeatureCard(feature, showTitle = configuration.screenWidthDp > 400)
                 }
             }
+            Box(modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars))
         }
 
     }
