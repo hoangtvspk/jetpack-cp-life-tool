@@ -2,44 +2,53 @@ package bui.dev.bujispinwheel.ui.qr_scanner.screens
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.graphics.Rect
+import android.util.Size
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.OptIn
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
-import androidx.compose.foundation.Canvas
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.RoundRect
-import android.graphics.Rect as AndroidRect
-import androidx.compose.ui.platform.LocalDensity
-import android.graphics.RectF
-import android.util.Log
-import android.widget.Toast
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.zIndex
+import androidx.annotation.OptIn
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.material3.Button
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.IntSize
+import androidx.navigation.NavController
+import bui.dev.bujispinwheel.R
+import java.net.URLEncoder
 
-@OptIn(ExperimentalGetImage::class)
 @Composable
 fun QRScannerScreen(
+    navController: NavController,
 ) {
     val context = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
-    val density = LocalDensity.current
+    var qrResult by remember() { mutableStateOf<String?>(null) }
+    var frameRect by remember() { mutableStateOf<Rect?>(null) }
+    // previewSize lưu kích thước thực tế của PreviewView trên màn hình
+    val previewSize = remember() { mutableStateOf(IntSize(1, 1)) }
+    var isScanning by remember() { mutableStateOf(true) }
     var hasCameraPermission by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(
@@ -59,146 +68,20 @@ fun QRScannerScreen(
         }
     }
 
-    // 1. State to hold the scanned QR value
-    var scannedValue by remember { mutableStateOf<String?>(null) }
-
-    // 2. Pass a lambda to update the state when a QR is scanned
-    val onQrCodeScannedInternal: (String) -> Unit = { value ->
-        scannedValue = value
-        Log.d("QRScanner", "Scanned: $value")
-        Toast.makeText(context, "Scanned: $value", Toast.LENGTH_SHORT).show()
-    }
-
     Box(modifier = Modifier.fillMaxSize()) {
-        if (hasCameraPermission) {
-            var previewViewRef by remember { mutableStateOf<PreviewView?>(null) }
-            AndroidView(
-                factory = { ctx ->
-                    val previewView = PreviewView(ctx)
-                    previewViewRef = previewView
-                    val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
-
-                    cameraProviderFuture.addListener({
-                        val cameraProvider = cameraProviderFuture.get()
-                        val preview = Preview.Builder().build().also {
-                            it.setSurfaceProvider(previewView.surfaceProvider)
-                        }
-
-                        val barcodeScanner = BarcodeScanning.getClient()
-                        val imageAnalysis = ImageAnalysis.Builder()
-                            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                            .build()
-
-                        imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(ctx), { imageProxy ->
-                            val mediaImage = imageProxy.image
-                            if (mediaImage != null && previewViewRef != null) {
-                                val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
-                                barcodeScanner.process(image)
-                                    .addOnSuccessListener { barcodes ->
-                                        val previewView = previewViewRef!!
-                                        val viewWidth = previewView.width
-                                        val viewHeight = previewView.height
-                                        val boxSizePx = with(density) { 250.dp.toPx() }
-                                        val scanBoxLeft = (viewWidth - boxSizePx) / 2f
-                                        val scanBoxTop = (viewHeight - boxSizePx) / 2f
-                                        val scanBoxRect = RectF(
-                                            scanBoxLeft,
-                                            scanBoxTop,
-                                            scanBoxLeft + boxSizePx,
-                                            scanBoxTop + boxSizePx
-                                        )
-                                        for (barcode in barcodes) {
-                                            val qrBox = barcode.boundingBox // Android.graphics.Rect in image coordinates
-                                            if (qrBox != null) {
-                                                val mappedBox = mapImageRectToViewRect(qrBox, imageProxy, previewView)
-                                                if (mappedBox != null && scanBoxRect.contains(mappedBox)) {
-                                                    barcode.rawValue?.let { onQrCodeScannedInternal(it) }
-                                                }
-                                            }
-                                        }
-                                    }
-                                    .addOnCompleteListener { imageProxy.close() }
-                            } else {
-                                imageProxy.close()
-                            }
-                        })
-
-                        val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-
-                        cameraProvider.unbindAll()
-                        cameraProvider.bindToLifecycle(
-                            lifecycleOwner, cameraSelector, preview, imageAnalysis
-                        )
-                    }, ContextCompat.getMainExecutor(ctx))
-
-                    previewView
-                },
-                modifier = Modifier.fillMaxSize()
-            )
-
-            // Overlay: semi-transparent black with transparent cutout for the scanning box
-            Box(
-                modifier = Modifier.fillMaxSize()
-            ) {
-                Canvas(modifier = Modifier.fillMaxSize()) {
-                    val overlayColor = Color.Black.copy(alpha = 0.6f)
-                    val boxSize = 250.dp.toPx()
-                    val boxLeft = (size.width - boxSize) / 2f
-                    val boxTop = (size.height - boxSize) / 2f
-                    val boxRect = androidx.compose.ui.geometry.Rect(boxLeft, boxTop, boxLeft + boxSize, boxTop + boxSize)
-
-                    val path = androidx.compose.ui.graphics.Path().apply {
-                        // Outer rectangle (whole screen)
-                        addRect(androidx.compose.ui.geometry.Rect(0f, 0f, size.width, size.height))
-                        // Inner rectangle (the transparent box)
-                        addRoundRect(
-                            RoundRect(
-                                rect = boxRect,
-                                cornerRadius = CornerRadius(16.dp.toPx(), 16.dp.toPx())
-                            )
-                        )
-                        fillType = androidx.compose.ui.graphics.PathFillType.EvenOdd
-                    }
-                    drawPath(path, overlayColor, style = androidx.compose.ui.graphics.drawscope.Fill)
-                }
-
-                // Draw the border for the scanning box
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .size(250.dp)
-                        .background(
-                            color = Color.Transparent,
-                            shape = RoundedCornerShape(16.dp)
-                        )
-                        .border(
-                            width = 4.dp,
-                            color = Color(0xFF00E0FF),
-                            shape = RoundedCornerShape(16.dp)
-                        )
-                )
-            }
-
-            // Show the scanned value as text under the scanning box
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Spacer(modifier = Modifier.height(250.dp + 32.dp)) // 250dp for box, 32dp for spacing
-                scannedValue?.let {
-                    Text(
-                        text = it,
-                        color = Color.White,
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier
-                            .background(Color.Black.copy(alpha = 0.7f), RoundedCornerShape(8.dp))
-                            .padding(12.dp)
-                    )
-                }
-            }
-        } else {
-            // Permission denied UI
+        // Hiển thị camera và thực hiện quét QR
+         if (hasCameraPermission) {
+        CameraPreview(
+            isScanning = isScanning,
+            onQrCodeScanned = { qrText ->
+                qrResult = qrText
+                isScanning = false
+                val encoded = URLEncoder.encode(qrResult, "UTF-8")
+                navController.navigate("qr_result/$encoded")
+            },
+            frameRect = frameRect,
+            previewSize = previewSize
+        )} else {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -213,37 +96,139 @@ fun QRScannerScreen(
                 }
             }
         }
+        // Overlay + khung quét
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .zIndex(1f)
+        ) {
+            val frameSize = 250.dp
+            // Khung quét (hình vuông ở giữa màn hình)
+            Box(
+                modifier = Modifier
+                    .size(frameSize)
+                    .align(Alignment.Center)
+                    .onGloballyPositioned { layoutCoordinates ->
+                        // Lấy vị trí và kích thước khung quét trên màn hình
+                        val position = layoutCoordinates.positionInRoot()
+                        val size = layoutCoordinates.size
+                        frameRect = Rect(
+                            position.x.toInt(),
+                            position.y.toInt(),
+                            (position.x + size.width).toInt(),
+                            (position.y + size.height).toInt()
+                        )
+                    }
+            ) {
+                // Vẽ border cho khung quét
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    drawRect(
+                        color = Color.Cyan,
+                        style = Stroke(width = 4.dp.toPx())
+                    )
+                }
+            }
+        }
+       Column (
+           modifier = Modifier.fillMaxSize(),
+           verticalArrangement = Arrangement.Bottom,
+           horizontalAlignment = Alignment.End
+       ) {
+           Image(
+               painter = painterResource(id = R.drawable.qr_panda_guiding),
+               contentDescription = "Background",
+               modifier = Modifier.fillMaxHeight(1/4f).padding(end = 20.dp, bottom = 20.dp),
+               alignment = Alignment.BottomEnd
+           )
+           Box(modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars))
+       }
     }
 }
 
-// Helper to map image rect to PreviewView coordinates
-private fun mapImageRectToViewRect(
-    imageRect: AndroidRect,
-    imageProxy: ImageProxy,
-    previewView: PreviewView
-): RectF? {
-    val imageWidth = imageProxy.width.toFloat()
-    val imageHeight = imageProxy.height.toFloat()
-    val viewWidth = previewView.width.toFloat()
-    val viewHeight = previewView.height.toFloat()
-    if (imageWidth == 0f || imageHeight == 0f || viewWidth == 0f || viewHeight == 0f) return null
+@OptIn(ExperimentalGetImage::class)
+@Composable
+fun CameraPreview(
+    isScanning: Boolean,
+    onQrCodeScanned: (String) -> Unit,
+    frameRect: Rect?,
+    previewSize: MutableState<IntSize>
+) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    // PreviewView là view hiển thị camera của CameraX
+    val previewView = remember { PreviewView(context) }
+    val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
+    var analysisUseCase: ImageAnalysis? by remember { mutableStateOf(null) }
 
-    // Assume FILL_CENTER scale type (default for PreviewView)
-    val scale = maxOf(viewWidth / imageWidth, viewHeight / imageHeight)
-    val scaledWidth = imageWidth * scale
-    val scaledHeight = imageHeight * scale
-    val dx = (viewWidth - scaledWidth) / 2f
-    val dy = (viewHeight - scaledHeight) / 2f
+    AndroidView(
+        factory = { previewView },
+        modifier = Modifier
+            .fillMaxSize()
+            .onGloballyPositioned { coordinates ->
+                // Lưu lại kích thước thực tế của PreviewView để tính toán scale
+                previewSize.value = coordinates.size
+            }
+    ) { view ->
+        val cameraProvider = cameraProviderFuture.get()
+        // Khởi tạo preview cho camera
+        val preview = Preview.Builder().build().also {
+            it.setSurfaceProvider(view.surfaceProvider)
+        }
+        // Khởi tạo use case cho phân tích hình ảnh (dùng để quét QR)
+        val imageAnalysis = ImageAnalysis.Builder()
+            .setTargetResolution(Size(1280, 720))
+            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+            .build()
 
-    val left = imageRect.left * scale + dx
-    val top = imageRect.top * scale + dy
-    val right = imageRect.right * scale + dx
-    val bottom = imageRect.bottom * scale + dy
-    return RectF(left, top, right, bottom)
-}
-
-// Extension to check if a RectF is fully inside another RectF
-private fun RectF.contains(inner: RectF): Boolean {
-    return this.left <= inner.left && this.top <= inner.top &&
-            this.right >= inner.right && this.bottom >= inner.bottom
+        val scanner = BarcodeScanning.getClient()
+        // Xử lý từng frame camera để quét QR
+        imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(context)) { imageProxy ->
+            if (!isScanning) {
+                imageProxy.close()
+                return@setAnalyzer
+            }
+            val mediaImage = imageProxy.image
+            // Chỉ xử lý khi có hình ảnh và đã xác định được khung quét + previewSize
+            if (mediaImage != null && frameRect != null && previewSize.value.width > 1 && previewSize.value.height > 1) {
+                val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
+                scanner.process(image)
+                    .addOnSuccessListener { barcodes ->
+                        for (barcode in barcodes) {
+                            val box = barcode.boundingBox
+                            if (box != null) {
+                                // Tính tỷ lệ scale giữa ảnh camera và PreviewView
+                                val scaleX = previewSize.value.width.toFloat() / image.width
+                                val scaleY = previewSize.value.height.toFloat() / image.height
+                                // Chuyển bounding box của QR code sang toạ độ trên PreviewView
+                                val barcodeRect = Rect(
+                                    (box.left * scaleX).toInt(),
+                                    (box.top * scaleY).toInt(),
+                                    (box.right * scaleX).toInt(),
+                                    (box.bottom * scaleY).toInt()
+                                )
+                                // Kiểm tra mã QR có nằm hoàn toàn trong khung quét không
+                                if (frameRect!!.contains(barcodeRect)) {
+                                    onQrCodeScanned(barcode.rawValue ?: "")
+                                    break
+                                }
+                            }
+                        }
+                    }
+                    .addOnCompleteListener {
+                        imageProxy.close()
+                    }
+            } else {
+                imageProxy.close()
+            }
+        }
+        // Gắn các use case vào camera
+        cameraProvider.unbindAll()
+        cameraProvider.bindToLifecycle(
+            lifecycleOwner,
+            CameraSelector.DEFAULT_BACK_CAMERA,
+            preview,
+            imageAnalysis
+        )
+        analysisUseCase = imageAnalysis
+    }
 }
