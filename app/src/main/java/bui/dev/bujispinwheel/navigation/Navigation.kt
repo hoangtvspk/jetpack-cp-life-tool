@@ -22,7 +22,7 @@ fun Navigation() {
             SpinWheel(navController = navController)
         }
         composable("qr_scanner"){
-            QRScannerScreen {  }
+            QRScannerScreen()
         }
 
     }

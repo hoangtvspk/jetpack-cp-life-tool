@@ -27,14 +27,19 @@ import com.google.mlkit.vision.common.InputImage
 import androidx.compose.foundation.Canvas
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.RoundRect
+import android.graphics.Rect as AndroidRect
+import androidx.compose.ui.platform.LocalDensity
+import android.graphics.RectF
+import android.util.Log
+import android.widget.Toast
 
 @OptIn(ExperimentalGetImage::class)
 @Composable
 fun QRScannerScreen(
-    onQrCodeScanned: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    val density = LocalDensity.current
     var hasCameraPermission by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(
@@ -54,11 +59,23 @@ fun QRScannerScreen(
         }
     }
 
+    // 1. State to hold the scanned QR value
+    var scannedValue by remember { mutableStateOf<String?>(null) }
+
+    // 2. Pass a lambda to update the state when a QR is scanned
+    val onQrCodeScannedInternal: (String) -> Unit = { value ->
+        scannedValue = value
+        Log.d("QRScanner", "Scanned: $value")
+        Toast.makeText(context, "Scanned: $value", Toast.LENGTH_SHORT).show()
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         if (hasCameraPermission) {
+            var previewViewRef by remember { mutableStateOf<PreviewView?>(null) }
             AndroidView(
                 factory = { ctx ->
                     val previewView = PreviewView(ctx)
+                    previewViewRef = previewView
                     val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
 
                     cameraProviderFuture.addListener({
@@ -74,12 +91,30 @@ fun QRScannerScreen(
 
                         imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(ctx), { imageProxy ->
                             val mediaImage = imageProxy.image
-                            if (mediaImage != null) {
+                            if (mediaImage != null && previewViewRef != null) {
                                 val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
                                 barcodeScanner.process(image)
                                     .addOnSuccessListener { barcodes ->
+                                        val previewView = previewViewRef!!
+                                        val viewWidth = previewView.width
+                                        val viewHeight = previewView.height
+                                        val boxSizePx = with(density) { 250.dp.toPx() }
+                                        val scanBoxLeft = (viewWidth - boxSizePx) / 2f
+                                        val scanBoxTop = (viewHeight - boxSizePx) / 2f
+                                        val scanBoxRect = RectF(
+                                            scanBoxLeft,
+                                            scanBoxTop,
+                                            scanBoxLeft + boxSizePx,
+                                            scanBoxTop + boxSizePx
+                                        )
                                         for (barcode in barcodes) {
-                                            barcode.rawValue?.let { onQrCodeScanned(it) }
+                                            val qrBox = barcode.boundingBox // Android.graphics.Rect in image coordinates
+                                            if (qrBox != null) {
+                                                val mappedBox = mapImageRectToViewRect(qrBox, imageProxy, previewView)
+                                                if (mappedBox != null && scanBoxRect.contains(mappedBox)) {
+                                                    barcode.rawValue?.let { onQrCodeScannedInternal(it) }
+                                                }
+                                            }
                                         }
                                     }
                                     .addOnCompleteListener { imageProxy.close() }
@@ -143,6 +178,25 @@ fun QRScannerScreen(
                         )
                 )
             }
+
+            // Show the scanned value as text under the scanning box
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(modifier = Modifier.height(250.dp + 32.dp)) // 250dp for box, 32dp for spacing
+                scannedValue?.let {
+                    Text(
+                        text = it,
+                        color = Color.White,
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier
+                            .background(Color.Black.copy(alpha = 0.7f), RoundedCornerShape(8.dp))
+                            .padding(12.dp)
+                    )
+                }
+            }
         } else {
             // Permission denied UI
             Column(
@@ -160,4 +214,36 @@ fun QRScannerScreen(
             }
         }
     }
+}
+
+// Helper to map image rect to PreviewView coordinates
+private fun mapImageRectToViewRect(
+    imageRect: AndroidRect,
+    imageProxy: ImageProxy,
+    previewView: PreviewView
+): RectF? {
+    val imageWidth = imageProxy.width.toFloat()
+    val imageHeight = imageProxy.height.toFloat()
+    val viewWidth = previewView.width.toFloat()
+    val viewHeight = previewView.height.toFloat()
+    if (imageWidth == 0f || imageHeight == 0f || viewWidth == 0f || viewHeight == 0f) return null
+
+    // Assume FILL_CENTER scale type (default for PreviewView)
+    val scale = maxOf(viewWidth / imageWidth, viewHeight / imageHeight)
+    val scaledWidth = imageWidth * scale
+    val scaledHeight = imageHeight * scale
+    val dx = (viewWidth - scaledWidth) / 2f
+    val dy = (viewHeight - scaledHeight) / 2f
+
+    val left = imageRect.left * scale + dx
+    val top = imageRect.top * scale + dy
+    val right = imageRect.right * scale + dx
+    val bottom = imageRect.bottom * scale + dy
+    return RectF(left, top, right, bottom)
+}
+
+// Extension to check if a RectF is fully inside another RectF
+private fun RectF.contains(inner: RectF): Boolean {
+    return this.left <= inner.left && this.top <= inner.top &&
+            this.right >= inner.right && this.bottom >= inner.bottom
 }
