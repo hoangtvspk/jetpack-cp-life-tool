@@ -155,6 +155,7 @@ fun AutoResizeText(
     modifier: Modifier = Modifier,
     maxFontSize: TextUnit = 32.sp,
     minFontSize: TextUnit = 12.sp,
+    maxLines: Int = 1,
     fontWeight: FontWeight = FontWeight.Normal,
     color: Color = Color.Black,
     textAlign: TextAlign = TextAlign.Center
@@ -165,13 +166,14 @@ fun AutoResizeText(
     BoxWithConstraints(modifier = modifier) {
         Text(
             text = text,
-            fontSize = currentFontSize,
+            fontSize = currentFontSize ,
             fontWeight = fontWeight,
             color = color,
             textAlign = textAlign,
-            maxLines = 1,
-            softWrap = false,
-            overflow = TextOverflow.Clip,
+            maxLines = if(currentFontSize == minFontSize) maxLines else 1,
+            lineHeight = currentFontSize * 1.2,
+            softWrap = currentFontSize == minFontSize,
+            overflow = if(currentFontSize == minFontSize) TextOverflow.Ellipsis else TextOverflow.Clip ,
             onTextLayout = { result ->
                 if (!readyToDraw) {
                     if (result.didOverflowWidth && currentFontSize > minFontSize) {

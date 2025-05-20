@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Buji Spin Wheel</string>
+    <string name="app_name">Buji Handy</string>
     <string name="feature_spin_wheel">Spin Wheel</string>
     <string name="feature_scan_qr">Scan QR code</string>
     <string name="feature_image_to_text">Scan Text</string>

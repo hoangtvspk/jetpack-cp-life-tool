@@ -25,10 +25,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import bui.dev.bujispinwheel.R
+import bui.dev.bujispinwheel.ui.wheelspin.components.AutoResizeText
 
 @Composable
 fun QRScannerResultScreen(
@@ -36,9 +39,12 @@ fun QRScannerResultScreen(
     qrResult: String,
 ) {
     val context = LocalContext.current
-    Box(modifier = Modifier.fillMaxSize().background(Color(0xFFBFCB8E)), contentAlignment = Alignment.Center) {
+    Box(
+        modifier = Modifier.fillMaxSize().background(Color(0xFFBFCB8E)),
+        contentAlignment = Alignment.Center
+    ) {
         Image(
-            painter = painterResource(id = R.drawable.wheel_panda_result),
+            painter = painterResource(id = R.drawable.wheel_panda_result_2),
             contentDescription = "Background",
             modifier = Modifier.fillMaxWidth(),
             contentScale = ContentScale.FillWidth,
@@ -47,13 +53,31 @@ fun QRScannerResultScreen(
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top,
-            modifier = Modifier.fillMaxWidth().aspectRatio(530/795f),
+            modifier = Modifier
+                .fillMaxWidth(387/530f)
+                .aspectRatio(387/795f)
         ) {
             Box(modifier = Modifier.fillMaxHeight(90/795f))
-            Text(text = qrResult, color = Color.Black, modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp))
-            Row {
+            Box(modifier = Modifier.padding(horizontal = 8.dp)){
+                AutoResizeText(
+                    text = qrResult,
+                    maxFontSize = 32.sp,
+                    minFontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 2,
+                    textAlign = TextAlign.Start,
+                    color = Color(0xFF5D4037),
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+            Row (
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 20.dp, end = 8.dp),
+                horizontalArrangement = Arrangement.End
+            ) {
                 Button(
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5B7346)),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF5C386)),
                     onClick = {
                     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                     val clip = ClipData.newPlainText("QR Result", qrResult)
@@ -61,9 +85,9 @@ fun QRScannerResultScreen(
                 }) {
                     Text("Sao chép", fontSize = 12.sp)
                 }
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(8.dp))
                 Button(
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5B7346)),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFA3B665)),
                     onClick = {
                     navController.popBackStack()
                 }) {
