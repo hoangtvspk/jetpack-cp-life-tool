@@ -1,5 +1,6 @@
 package bui.dev.bujispinwheel.ui.qr_scanner.screens
 
+import QRFromGalleryButton
 import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Rect
@@ -18,6 +19,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -128,6 +130,14 @@ fun QRScannerScreen(
                         )
                     }
                 },
+                actions = {
+                    QRFromGalleryButton{ it ->
+                        qrResult = it
+                        isScanning = false
+                        val encoded = URLEncoder.encode(qrResult, "UTF-8")
+                        navController.navigate("qr_result/$encoded")
+                    }
+                }
             )
         }
 
